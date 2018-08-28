@@ -209,7 +209,9 @@ function fetchFile(options = {}, method, url, headers = {}, body):Promise {
  *         register progress event handler.
  */
 function fetch(...args:any):Promise {
-
+  // Promise resolve and reject callbacks for fetch function;
+  let reqResolve
+  let reqReject
   // create task ID for receiving progress event
   let taskId = getUUID()
   let options = this || {}
@@ -231,6 +233,8 @@ function fetch(...args:any):Promise {
 
   // from remote HTTP(S)
   let promise = new Promise((resolve, reject) => {
+    reqResolve = resolve
+    reqReject = reject
     let nativeMethodName = Array.isArray(body) ? 'fetchBlobForm' : 'fetchBlob'
 
     // on progress event listener
@@ -371,11 +375,11 @@ function fetch(...args:any):Promise {
     subscriptionUpload.remove()
     stateEvent.remove()
     RNFetchBlob.cancelRequest(taskId, fn)
+    reqReject(new Error('cancelled'))
   }
   promise.taskId = taskId
 
   return promise
-
 }
 
 /**
